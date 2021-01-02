@@ -33,7 +33,12 @@ function App() {
           isBlack: boardState[i][j] === BLACK,
         });
         row.push(
-          <div onClick={() => handleMove(i, j)} className="cell" id={`${i}-${j}-cell`} key={`${i}-${j}`}>
+          <div
+            onClick={() => handleMove(i, j)}
+            className="cell"
+            id={`${i}-${j}-cell`}
+            key={`${i}-${j}`}
+          >
             <div
               id={`${i}-${j}-marker`}
               className={markerClasses}
@@ -64,10 +69,10 @@ function App() {
   };
 
   const handleClickMarker = (row: number, col: number) => {
-    if(hasEmptyNeighbors(row, col)){
-      selectMarker(row, col)
+    if (hasEmptyNeighbors(row, col)) {
+      selectMarker(row, col);
     }
-  }
+  };
 
   const selectMarker = (row: number, col: number) => {
     removeCurrentHighlight();
@@ -82,23 +87,87 @@ function App() {
   };
 
   const handleMove = (row: number, column: number) => {
-    if(boardState[row][column] !== EMPTY || !selectedMarker){
-      return;
-    } else {
-      const currentCoordinates = selectedMarker.split('-')
-      console.log(currentCoordinates)
-
+    const [currentRow, currentColumn] = selectedMarker.split("-");
+    const moveIsLegal = isMoveLegal(
+      row,
+      column,
+      parseInt(currentRow),
+      parseInt(currentColumn)
+    );
+    if (moveIsLegal) {
+      // TODO: add code to update board state
       const currentEl = document.getElementById(`${selectedMarker}-marker`);
       currentEl?.classList.remove("isWhite");
       currentEl?.classList.remove("isBlack");
-      document.getElementById(`${row}-${column}-marker`)?.classList.add("isBlack")
+      document
+        .getElementById(`${row}-${column}-marker`)
+        ?.classList.add("isBlack");
     }
   };
 
+  const isMoveLegal = (
+    targetRow: number,
+    targetColumn: number,
+    currentRow: number,
+    currentColumn: number
+  ): boolean => {
+    // is move orthogonal, to a non-occupied space?
+    if (
+      boardState[targetRow][targetColumn] !== EMPTY ||
+      (targetColumn !== currentColumn && targetRow !== currentRow)
+    ) {
+      return false;
+    }
+
+    if (targetRow !== currentRow) {
+      // check if marker is obstructed below
+      if (targetRow > currentRow) {
+        for (let i = currentRow + 1; i < targetRow; i++) {
+          if (boardState[i][targetColumn] !== EMPTY) {
+            return false;
+          }
+        }
+      }
+      // check if marker is obstructed above
+      if (targetRow < currentRow) {
+        for (let i = currentRow - 1; i > targetRow; i--) {
+          if (boardState[i][targetColumn] !== EMPTY) {
+            console.log(boardState[i][targetColumn]);
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    if (targetColumn !== currentColumn) {
+      if (targetColumn > currentColumn) {
+        // check if marker is obstructed to the right
+        for (let i = currentColumn + 1; i < targetColumn; i++) {
+          if (boardState[targetRow][i] !== EMPTY) {
+            return false;
+          }
+        }
+      }
+      if (targetColumn < currentColumn) {
+        // check if marker is obstructed to the left
+        for (let i = currentColumn - 1; i > targetColumn; i--) {
+          if (boardState[targetRow][i] !== EMPTY) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    console.error(
+      `somehow, code evaded all checks.  attempting move to ${targetRow}, ${targetColumn}`
+    );
+    return false;
+  };
+
   const removeCurrentHighlight = () => {
-    console.log(selectedMarker);
     const el = document.getElementById(`${selectedMarker}-marker`);
-    console.log(el);
     if (el) {
       el?.classList.remove("highlight");
     }
