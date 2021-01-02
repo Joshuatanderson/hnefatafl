@@ -1,17 +1,14 @@
 import React, { useState } from "react";
 import classnames from "classnames";
+import { useAtom } from "jotai";
+import produce from "immer";
 
+import { DARK, LIGHT, EMPTY, BOARD_HEIGHT, BOARD_WIDTH } from "./constants";
 import { boardAtom } from "./atoms/boardState";
 import { selectedMarkerAtom } from "./atoms/selectedMarker";
 import "./App.scss";
-import { useAtom } from "jotai";
-
-const BLACK = 2;
-const WHITE = 1;
-const EMPTY = 0;
-
-const BOARD_WIDTH = 11;
-const BOARD_HEIGHT = 11;
+import { activePlayerAtom } from "./atoms/activePlayer";
+import { act } from "react-dom/test-utils";
 
 // highlight a piece by clicking on it.
 // Any piece that has an open space next to it should be highlightable
@@ -21,6 +18,7 @@ const BOARD_HEIGHT = 11;
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
   const [selectedMarker, updateSelectedMarker] = useAtom(selectedMarkerAtom);
+  const [activePlayer, updateActivePlayer] = useAtom(activePlayerAtom);
 
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
@@ -29,8 +27,8 @@ function App() {
       for (let j = 0; j < BOARD_WIDTH; j++) {
         const markerClasses = classnames({
           marker: true,
-          isWhite: boardState[i][j] === WHITE,
-          isBlack: boardState[i][j] === BLACK,
+          isLight: boardState[i]?.[j] === LIGHT,
+          isDark: boardState[i]?.[j] === DARK,
         });
         row.push(
           <div
@@ -64,12 +62,11 @@ function App() {
         return true;
       }
     }
-    console.log(false);
     return false;
   };
 
   const handleClickMarker = (row: number, col: number) => {
-    if (hasEmptyNeighbors(row, col)) {
+    if (hasEmptyNeighbors(row, col) && boardState[row][col] === activePlayer) {
       selectMarker(row, col);
     }
   };
@@ -86,23 +83,60 @@ function App() {
       ?.classList?.add("highlight");
   };
 
-  const handleMove = (row: number, column: number) => {
-    const [currentRow, currentColumn] = selectedMarker.split("-");
-    const moveIsLegal = isMoveObstructed(
-      row,
-      column,
-      parseInt(currentRow),
-      parseInt(currentColumn)
+  const handleMove = (targetRow: number, targetColumn: number) => {
+    if (!selectedMarker) {
+      return false;
+    }
+    const [currentRow, currentColumn] = selectedMarker
+      .split("-")
+      .map((coordinate) => parseInt(coordinate));
+    const moveIsLegal = isMoveLegal(
+      targetRow,
+      targetColumn,
+      currentRow,
+      currentColumn
     );
     if (moveIsLegal) {
-      // TODO: add code to update board state
       const currentEl = document.getElementById(`${selectedMarker}-marker`);
-      currentEl?.classList.remove("isWhite");
-      currentEl?.classList.remove("isBlack");
+
+      // clear current marker
+      currentEl?.classList.remove("isLight");
+      currentEl?.classList.remove("isDark");
+
+      // add new marker
       document
-        .getElementById(`${row}-${column}-marker`)
-        ?.classList.add("isBlack");
+        .getElementById(`${targetRow}-${targetColumn}-marker`)
+        ?.classList.add(activePlayer === DARK ? "isDark" : "isLight");
+
+      updateBoardState(
+        produce(boardState, (draft) => {
+          draft[targetRow][targetColumn] = activePlayer;
+          draft[currentRow][currentColumn] = EMPTY;
+        })
+      );
+
+      updateActivePlayer(activePlayer === DARK ? LIGHT : DARK);
     }
+  };
+
+  const isMoveLegal = (
+    targetRow: number,
+    targetColumn: number,
+    currentRow: number,
+    currentColumn: number
+  ) => {
+    const moveIsObstructed = isMoveObstructed(
+      targetRow,
+      targetColumn,
+      currentRow,
+      currentColumn
+    );
+    const markerIsCorrectColor =
+      boardState[currentRow][currentColumn] === activePlayer;
+    if (!moveIsObstructed && markerIsCorrectColor) {
+      return true;
+    }
+    return false;
   };
 
   const isMoveObstructed = (
@@ -111,12 +145,13 @@ function App() {
     currentRow: number,
     currentColumn: number
   ): boolean => {
-    // is move orthogonal, to a non-occupied space?
+    // is move orthogonal, to a non-occupied space, or to itself?
     if (
       boardState[targetRow][targetColumn] !== EMPTY ||
+      (targetColumn === currentColumn && targetRow === currentRow) ||
       (targetColumn !== currentColumn && targetRow !== currentRow)
     ) {
-      return false;
+      return true;
     }
 
     if (targetRow !== currentRow) {
@@ -124,7 +159,7 @@ function App() {
       if (targetRow > currentRow) {
         for (let i = currentRow + 1; i < targetRow; i++) {
           if (boardState[i][targetColumn] !== EMPTY) {
-            return false;
+            return true;
           }
         }
       }
@@ -132,12 +167,12 @@ function App() {
       if (targetRow < currentRow) {
         for (let i = currentRow - 1; i > targetRow; i--) {
           if (boardState[i][targetColumn] !== EMPTY) {
-            console.log(boardState[i][targetColumn]);
-            return false;
+            return true;
           }
         }
       }
-      return true;
+
+      return false;
     }
 
     if (targetColumn !== currentColumn) {
@@ -145,7 +180,7 @@ function App() {
       if (targetColumn > currentColumn) {
         for (let i = currentColumn + 1; i < targetColumn; i++) {
           if (boardState[targetRow][i] !== EMPTY) {
-            return false;
+            return true;
           }
         }
       }
@@ -154,17 +189,18 @@ function App() {
       if (targetColumn < currentColumn) {
         for (let i = currentColumn - 1; i > targetColumn; i--) {
           if (boardState[targetRow][i] !== EMPTY) {
-            return false;
+            return true;
           }
         }
       }
-      return true;
+
+      return false;
     }
 
     console.error(
       `somehow, code evaded all checks.  attempting move to ${targetRow}, ${targetColumn}`
     );
-    return false;
+    return true;
   };
 
   const removeCurrentHighlight = () => {
@@ -177,6 +213,9 @@ function App() {
   return (
     <div className="App">
       <h1 className="title">Hnefatafl</h1>
+      <h3 className="subtitle">
+        {activePlayer === DARK ? "Black to move" : "White to move"}
+      </h3>
       {makeBoard(BOARD_WIDTH, BOARD_HEIGHT)}
     </div>
   );
