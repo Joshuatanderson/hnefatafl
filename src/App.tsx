@@ -88,7 +88,7 @@ function App() {
 
   const handleMove = (row: number, column: number) => {
     const [currentRow, currentColumn] = selectedMarker.split("-");
-    const moveIsLegal = isMoveLegal(
+    const moveIsLegal = isMoveObstructed(
       row,
       column,
       parseInt(currentRow),
@@ -105,7 +105,7 @@ function App() {
     }
   };
 
-  const isMoveLegal = (
+  const isMoveObstructed = (
     targetRow: number,
     targetColumn: number,
     currentRow: number,
@@ -141,16 +141,17 @@ function App() {
     }
 
     if (targetColumn !== currentColumn) {
+      // check if marker is obstructed to the right
       if (targetColumn > currentColumn) {
-        // check if marker is obstructed to the right
         for (let i = currentColumn + 1; i < targetColumn; i++) {
           if (boardState[targetRow][i] !== EMPTY) {
             return false;
           }
         }
       }
+
+      // check if marker is obstructed to the left
       if (targetColumn < currentColumn) {
-        // check if marker is obstructed to the left
         for (let i = currentColumn - 1; i > targetColumn; i--) {
           if (boardState[targetRow][i] !== EMPTY) {
             return false;
