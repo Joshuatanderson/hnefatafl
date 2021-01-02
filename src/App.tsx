@@ -33,11 +33,11 @@ function App() {
           isBlack: boardState[i][j] === BLACK,
         });
         row.push(
-          <div className="cell" id={`${i}-${j}-cell`} key={`${i}-${j}`}>
+          <div onClick={() => handleMove(i, j)} className="cell" id={`${i}-${j}-cell`} key={`${i}-${j}`}>
             <div
               id={`${i}-${j}-marker`}
               className={markerClasses}
-              onClick={() => getNeighbors(i, j)}
+              onClick={() => handleClickMarker(i, j)}
             ></div>
           </div>
         );
@@ -47,7 +47,7 @@ function App() {
     return <div className="board">{boardContents}</div>;
   };
 
-  const getNeighbors = (row: number, column: number): boolean => {
+  const hasEmptyNeighbors = (row: number, column: number): boolean => {
     const neighbors = {
       north: boardState[row - 1]?.[column],
       south: boardState[row + 1]?.[column],
@@ -56,14 +56,23 @@ function App() {
     };
     for (let prop in neighbors) {
       if (neighbors[prop as "north" | "south" | "east" | "west"] === EMPTY) {
-        removeCurrentHighlight();
-        highlightMarker(row, column);
-        updateSelectedMarker(`${row}-${column}`)
         return true;
       }
     }
     console.log(false);
     return false;
+  };
+
+  const handleClickMarker = (row: number, col: number) => {
+    if(hasEmptyNeighbors(row, col)){
+      selectMarker(row, col)
+    }
+  }
+
+  const selectMarker = (row: number, col: number) => {
+    removeCurrentHighlight();
+    highlightMarker(row, col);
+    updateSelectedMarker(`${row}-${col}`);
   };
 
   const highlightMarker = (row: number, column: number) => {
@@ -72,14 +81,28 @@ function App() {
       ?.classList?.add("highlight");
   };
 
-  const removeCurrentHighlight = () => {
-    console.log(selectedMarker)
-    const el = document.getElementById(`${selectedMarker}-marker`)
-    console.log(el);
-    if(el){
-      el?.classList.remove("highlight")
+  const handleMove = (row: number, column: number) => {
+    if(boardState[row][column] !== EMPTY || !selectedMarker){
+      return;
+    } else {
+      const currentCoordinates = selectedMarker.split('-')
+      console.log(currentCoordinates)
+
+      const currentEl = document.getElementById(`${selectedMarker}-marker`);
+      currentEl?.classList.remove("isWhite");
+      currentEl?.classList.remove("isBlack");
+      document.getElementById(`${row}-${column}-marker`)?.classList.add("isBlack")
     }
-  }
+  };
+
+  const removeCurrentHighlight = () => {
+    console.log(selectedMarker);
+    const el = document.getElementById(`${selectedMarker}-marker`);
+    console.log(el);
+    if (el) {
+      el?.classList.remove("highlight");
+    }
+  };
 
   return (
     <div className="App">
