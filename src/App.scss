@@ -1,0 +1,42 @@
+.title {
+  margin: 30px 5%;
+}
+
+.board {
+  display: grid;
+  width: 90%;
+  grid-template-rows: repeat(11, 1fr);
+  grid-template-columns: repeat(11, 1fr);
+  margin: auto;
+  border: solid 1px salmon;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  background-color: aliceblue;
+}
+
+.cell {
+  width: 100%;
+  border: solid 1px salmon;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker {
+  margin: 12%;
+  &.isBlack {
+    border-radius: 50%;
+    background-color: rgb(201, 81, 34);
+  }
+  &.isWhite {
+    border-radius: 50%;
+    background-color: #a28fcf;
+  }
+  &::before {
+    content: "";
+    display: block;
+    padding-top: 100%;
+  }
+}
