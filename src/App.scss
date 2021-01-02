@@ -1,3 +1,9 @@
+$white: #a28fcf;
+$black: rgb(201, 81, 34);
+
+$highlightWidth: 3px;
+$highlightColor: orange;
+
 .title {
   margin: 30px 5%;
 }
@@ -28,11 +34,17 @@
   margin: 12%;
   &.isBlack {
     border-radius: 50%;
-    background-color: rgb(201, 81, 34);
+    background-color: $black;
+    &.highlight {
+      border: solid $highlightWidth orange;
+    }
   }
   &.isWhite {
     border-radius: 50%;
-    background-color: #a28fcf;
+    background-color: $white;
+    &.highlight {
+      border: solid $highlightWidth $highlightColor;
+    }
   }
   &::before {
     content: "";
