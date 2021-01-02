@@ -1,31 +1,20 @@
 import React, { useState } from "react";
 import classnames from "classnames";
 
+import { boardAtom } from "./atoms/boardState";
 import "./App.scss";
+import { useAtom } from "jotai";
 
 const BLACK = 2;
 const WHITE = 1;
 const EMPTY = 0;
 
-const INIT_BOARD_STATE = [
-  [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0],
-  [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2],
-  [2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 2],
-  [2, 2, 0, 1, 1, 1, 1, 1, 0, 2, 2],
-  [2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 2],
-  [2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-  [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0],
-];
-
 const BOARD_WIDTH = 11;
 const BOARD_HEIGHT = 11;
 
 function App() {
-  const boardState = INIT_BOARD_STATE;
+  const [boardState, updateBoardState] = useAtom(boardAtom);
+  
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
     for (let i = 0; i < BOARD_HEIGHT; i++) {
