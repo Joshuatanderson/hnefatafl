@@ -1,0 +1,31 @@
+@use "../variables";
+
+.square {
+  width: 100%;
+  border: solid 1px variables.$border;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker {
+  margin: 12%;
+  &.isDark {
+    border-radius: 50%;
+    background-color: variables.$black;
+    &.highlight {
+      border: solid variables.$highlightWidth variables.$highlightColorDark;
+    }
+  }
+  &.isLight {
+    border-radius: 50%;
+    background-color: variables.$white;
+    &.highlight {
+      border: solid variables.$highlightWidth variables.$highlightColorLight;
+    }
+  }
+  &::before {
+    content: "";
+    display: block;
+    padding-top: 100%;
+  }
+}

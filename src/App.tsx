@@ -1,9 +1,8 @@
-import React, { useState } from "react";
-import classnames from "classnames";
+import React from "react";
 import { useAtom } from "jotai";
 import produce from "immer";
 
-import { Neighbors, SpaceValue } from "./types";
+import { Neighbors } from "./types";
 import {
   DARK,
   LIGHT,
@@ -17,8 +16,8 @@ import { boardAtom } from "./atoms/boardState";
 import { selectedMarkerAtom } from "./atoms/selectedMarker";
 import "./App.scss";
 import { activePlayerAtom } from "./atoms/activePlayer";
-import { act } from "react-dom/test-utils";
 import { CoordinatePair } from "./types/CoordinatePair";
+import Square from "./square/Square";
 
 // highlight a piece by clicking on it.
 // Any piece that has an open space next to it should be highlightable
@@ -35,24 +34,15 @@ function App() {
     for (let i = 0; i < BOARD_HEIGHT; i++) {
       const row: JSX.Element[] = [];
       for (let j = 0; j < BOARD_WIDTH; j++) {
-        const markerClasses = classnames({
-          marker: true,
-          isLight: boardState[i]?.[j] === LIGHT,
-          isDark: boardState[i]?.[j] === DARK,
-        });
         row.push(
-          <div
-            onClick={() => handleMove({ row: i, col: j })}
-            className="cell"
+          <Square
+            handleMove={handleMove}
+            spaceValue={boardState[i]?.[j]}
+            handleClickMarker={handleClickMarker}
+            coordinates={{ row: i, col: j }}
             id={`${i}-${j}-cell`}
             key={`${i}-${j}`}
-          >
-            <div
-              id={`${i}-${j}-marker`}
-              className={markerClasses}
-              onClick={() => handleClickMarker({ row: i, col: j })}
-            ></div>
-          </div>
+          />
         );
       }
       boardContents.push(row);
@@ -136,12 +126,15 @@ function App() {
 
   const handleMove = ({ row, col }: CoordinatePair) => {
     if (!selectedMarker) {
-      return false;
+      return;
     }
     const [currentRow, currentCol] = selectedMarker
       .split("-")
       .map((coordinate) => parseInt(coordinate));
-    const moveIsLegal = isMoveLegal({row, col}, {row: currentRow, col: currentCol});
+    const moveIsLegal = isMoveLegal(
+      { row, col },
+      { row: currentRow, col: currentCol }
+    );
     if (moveIsLegal) {
       const currentEl = document.getElementById(`${selectedMarker}-marker`);
 
