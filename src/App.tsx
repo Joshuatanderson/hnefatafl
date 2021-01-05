@@ -138,10 +138,10 @@ function App() {
     if (!selectedMarker) {
       return false;
     }
-    const [currentRow, currentColumn] = selectedMarker
+    const [currentRow, currentCol] = selectedMarker
       .split("-")
       .map((coordinate) => parseInt(coordinate));
-    const moveIsLegal = isMoveLegal(row, col, currentRow, currentColumn);
+    const moveIsLegal = isMoveLegal({row, col}, {row: currentRow, col: currentCol});
     if (moveIsLegal) {
       const currentEl = document.getElementById(`${selectedMarker}-marker`);
 
@@ -157,7 +157,7 @@ function App() {
       updateBoardState(
         produce(boardState, (draft) => {
           draft[row][col] = activePlayer;
-          draft[currentRow][currentColumn] = EMPTY;
+          draft[currentRow][currentCol] = EMPTY;
         })
       );
 
@@ -172,20 +172,10 @@ function App() {
     }
   };
 
-  const isMoveLegal = (
-    targetRow: number,
-    targetColumn: number,
-    currentRow: number,
-    currentColumn: number
-  ) => {
-    const moveIsObstructed = isMoveObstructed(
-      targetRow,
-      targetColumn,
-      currentRow,
-      currentColumn
-    );
+  const isMoveLegal = (target: CoordinatePair, current: CoordinatePair) => {
+    const moveIsObstructed = isMoveObstructed(target, current);
     const markerIsCorrectColor =
-      boardState[currentRow][currentColumn] === activePlayer;
+      boardState[current.row][current.col] === activePlayer;
     if (!moveIsObstructed && markerIsCorrectColor) {
       return true;
     }
@@ -193,33 +183,31 @@ function App() {
   };
 
   const isMoveObstructed = (
-    targetRow: number,
-    targetColumn: number,
-    currentRow: number,
-    currentColumn: number
+    target: CoordinatePair,
+    current: CoordinatePair
   ): boolean => {
     // is move orthogonal, to a non-occupied space, or to itself?
     if (
-      boardState[targetRow][targetColumn] !== EMPTY ||
-      (targetColumn === currentColumn && targetRow === currentRow) ||
-      (targetColumn !== currentColumn && targetRow !== currentRow)
+      boardState[target.row][target.col] !== EMPTY ||
+      (target.col === current.col && target.row === current.row) ||
+      (target.col !== current.col && target.row !== current.row)
     ) {
       return true;
     }
 
-    if (targetRow !== currentRow) {
+    if (target.row !== current.row) {
       // check if marker is obstructed below
-      if (targetRow > currentRow) {
-        for (let i = currentRow + 1; i < targetRow; i++) {
-          if (boardState[i][targetColumn] !== EMPTY) {
+      if (target.row > current.row) {
+        for (let i = current.row + 1; i < target.row; i++) {
+          if (boardState[i][target.col] !== EMPTY) {
             return true;
           }
         }
       }
       // check if marker is obstructed above
-      if (targetRow < currentRow) {
-        for (let i = currentRow - 1; i > targetRow; i--) {
-          if (boardState[i][targetColumn] !== EMPTY) {
+      if (target.row < current.row) {
+        for (let i = current.row - 1; i > target.row; i--) {
+          if (boardState[i][target.col] !== EMPTY) {
             return true;
           }
         }
@@ -228,20 +216,20 @@ function App() {
       return false;
     }
 
-    if (targetColumn !== currentColumn) {
+    if (target.col !== current.col) {
       // check if marker is obstructed to the right
-      if (targetColumn > currentColumn) {
-        for (let i = currentColumn + 1; i < targetColumn; i++) {
-          if (boardState[targetRow][i] !== EMPTY) {
+      if (target.col > current.col) {
+        for (let i = current.col + 1; i < target.col; i++) {
+          if (boardState[target.row][i] !== EMPTY) {
             return true;
           }
         }
       }
 
       // check if marker is obstructed to the left
-      if (targetColumn < currentColumn) {
-        for (let i = currentColumn - 1; i > targetColumn; i--) {
-          if (boardState[targetRow][i] !== EMPTY) {
+      if (target.col < current.col) {
+        for (let i = current.col - 1; i > target.col; i--) {
+          if (boardState[target.row][i] !== EMPTY) {
             return true;
           }
         }
@@ -251,7 +239,7 @@ function App() {
     }
 
     console.error(
-      `somehow, code evaded all checks.  attempting move to ${targetRow}, ${targetColumn}`
+      `somehow, code evaded all checks.  attempting move to ${target.row}, ${target.col}`
     );
     return true;
   };
