@@ -4,7 +4,15 @@ import { useAtom } from "jotai";
 import produce from "immer";
 
 import { Neighbors, SpaceValue } from "./types";
-import { DARK, LIGHT, EMPTY, BOARD_HEIGHT, BOARD_WIDTH } from "./constants";
+import {
+  DARK,
+  LIGHT,
+  EMPTY,
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  IS_LIGHT,
+  IS_DARK,
+} from "./constants";
 import { boardAtom } from "./atoms/boardState";
 import { selectedMarkerAtom } from "./atoms/selectedMarker";
 import "./App.scss";
@@ -34,7 +42,7 @@ function App() {
         });
         row.push(
           <div
-            onClick={() => handleMove({row: i, col: j})}
+            onClick={() => handleMove({ row: i, col: j })}
             className="cell"
             id={`${i}-${j}-cell`}
             key={`${i}-${j}`}
@@ -138,13 +146,13 @@ function App() {
       const currentEl = document.getElementById(`${selectedMarker}-marker`);
 
       // clear current marker
-      currentEl?.classList.remove("isLight");
-      currentEl?.classList.remove("isDark");
+      currentEl?.classList.remove(IS_LIGHT);
+      currentEl?.classList.remove(IS_DARK);
 
       // add new marker
       document
         .getElementById(`${row}-${col}-marker`)
-        ?.classList.add(activePlayer === DARK ? "isDark" : "isLight");
+        ?.classList.add(activePlayer === DARK ? IS_DARK : IS_LIGHT);
 
       updateBoardState(
         produce(boardState, (draft) => {
@@ -153,11 +161,11 @@ function App() {
         })
       );
 
-      const neighbors = getNeighbors({row, col});
+      const neighbors = getNeighbors({ row, col });
 
       // for(let neighbor in neighbors) {
       //   if(shouldBeCaptured())
-        // capture
+      // capture
       // }
 
       updateActivePlayer(activePlayer === DARK ? LIGHT : DARK);
