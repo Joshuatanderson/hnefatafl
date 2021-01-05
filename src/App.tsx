@@ -20,11 +20,6 @@ import { CoordinatePair } from "./types/CoordinatePair";
 import Square from "./components/Square/Square";
 import Header from "./components/Header/Header";
 
-// highlight a piece by clicking on it.
-// Any piece that has an open space next to it should be highlightable
-
-// has valid move: get neighbors.  One neighbor or more is empty.
-
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
   const [selectedMarker, updateSelectedMarker] = useAtom(selectedMarkerAtom);
