@@ -1,15 +1,17 @@
-$white: #a28fcf;
-$black: rgb(201, 81, 34);
+$white: #b8b4ce;
+$black: rgb(23, 13, 80);
+$border: rgb(143, 143, 143);
 
 $highlightWidth: 3px;
-$highlightColor: orange;
+$highlightColorDark: rgb(226, 111, 57);
+$highlightColorLight: darken($white, 50%);
 
 .title {
   margin: 30px 0px 0px 5%;
 }
 .subtitle {
   margin: 0 0 20px 5%;
-  color: rgb(126, 126, 126)
+  color: rgb(126, 126, 126);
 }
 
 .board {
@@ -18,7 +20,7 @@ $highlightColor: orange;
   grid-template-rows: repeat(11, 1fr);
   grid-template-columns: repeat(11, 1fr);
   margin: auto;
-  border: solid 1px salmon;
+  border: solid 1px $border;
 }
 
 .row {
@@ -29,7 +31,7 @@ $highlightColor: orange;
 
 .cell {
   width: 100%;
-  border: solid 1px salmon;
+  border: solid 1px $border;
   align-items: center;
   justify-content: center;
 }
@@ -40,14 +42,14 @@ $highlightColor: orange;
     border-radius: 50%;
     background-color: $black;
     &.highlight {
-      border: solid $highlightWidth orange;
+      border: solid $highlightWidth $highlightColorDark;
     }
   }
   &.isLight {
     border-radius: 50%;
     background-color: $white;
     &.highlight {
-      border: solid $highlightWidth $highlightColor;
+      border: solid $highlightWidth $highlightColorLight;
     }
   }
   &::before {
