@@ -31,6 +31,7 @@ const Square = ({
     <div className="square" onClick={() => handleMove(coordinates)}>
       {spaceValue !== EMPTY && (
         <div
+          id={`${coordinates.row}-${coordinates.col}-marker`}
           className={markerClasses}
           onClick={() => handleClickMarker(coordinates)}
         ></div>
