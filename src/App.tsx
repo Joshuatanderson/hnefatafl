@@ -17,7 +17,8 @@ import { selectedMarkerAtom } from "./atoms/selectedMarker";
 import "./App.scss";
 import { activePlayerAtom } from "./atoms/activePlayer";
 import { CoordinatePair } from "./types/CoordinatePair";
-import Square from "./square/Square";
+import Square from "./components/Square/Square";
+import Header from "./components/Header/Header";
 
 // highlight a piece by clicking on it.
 // Any piece that has an open space next to it should be highlightable
@@ -246,10 +247,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1 className="title">Hnefatafl</h1>
-      <h3 className="subtitle">
-        {activePlayer === DARK ? "Black to move" : "White to move"}
-      </h3>
+      <Header activePlayer={activePlayer} />
       {makeBoard(BOARD_WIDTH, BOARD_HEIGHT)}
     </div>
   );

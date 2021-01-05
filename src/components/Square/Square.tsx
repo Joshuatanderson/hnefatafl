@@ -1,9 +1,9 @@
 import React from "react";
 import classNames from "classnames";
 
-import { DARK, EMPTY, IS_DARK, IS_LIGHT, LIGHT } from "../constants";
-import { SpaceValue } from "../types";
-import { CoordinatePair } from "../types/CoordinatePair";
+import { DARK, EMPTY, IS_DARK, IS_LIGHT, LIGHT } from "../../constants";
+import { SpaceValue } from "../../types";
+import { CoordinatePair } from "../../types/CoordinatePair";
 import "./Square.scss";
 
 interface Square {
