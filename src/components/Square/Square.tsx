@@ -13,6 +13,7 @@ interface Square {
   handleClickMarker: (coordinates: CoordinatePair) => void;
   key: string;
   id: string;
+  isSelected: boolean
 }
 
 const Square = ({
@@ -20,11 +21,13 @@ const Square = ({
   coordinates,
   handleMove,
   handleClickMarker,
+  isSelected
 }: Square) => {
   const markerClasses = classNames({
     marker: true,
     [IS_LIGHT]: spaceValue === LIGHT,
     [IS_DARK]: spaceValue === DARK,
+    highlight: isSelected
   });
 
   return (

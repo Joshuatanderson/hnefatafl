@@ -15,15 +15,21 @@ import {
 import { boardAtom } from "./atoms/boardState";
 import { selectedMarkerAtom } from "./atoms/selectedMarker";
 import "./App.scss";
-import { activePlayerAtom } from "./atoms/activePlayer";
+import { activePlayerAtom, useActivePlayerDevTools } from "./atoms/activePlayer";
 import { CoordinatePair } from "./types/CoordinatePair";
 import Square from "./components/Square/Square";
 import Header from "./components/Header/Header";
+import { useAtomDevtools } from "jotai/devtools";
 
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
   const [selectedMarker, updateSelectedMarker] = useAtom(selectedMarkerAtom);
   const [activePlayer, updateActivePlayer] = useAtom(activePlayerAtom);
+
+  // init devtools
+  useAtomDevtools(activePlayerAtom, "active Player");
+  useAtomDevtools(boardAtom, "board state");
+  useAtomDevtools(selectedMarkerAtom, "selected marker")
 
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
@@ -38,6 +44,7 @@ function App() {
             coordinates={{ row: i, col: j }}
             id={`${i}-${j}-cell`}
             key={`${i}-${j}`}
+            isSelected={selectedMarker === `${i}-${j}`}
           />
         );
       }
@@ -47,18 +54,48 @@ function App() {
   };
 
   const getNeighbors = ({ row, col }: CoordinatePair): Neighbors => {
-    return {
-      north: boardState[row - 1]?.[col],
-      south: boardState[row + 1]?.[col],
-      east: boardState[row]?.[col + 1],
-      west: boardState[row]?.[col - 1],
-    };
+    const neighbors: Neighbors = {};
+    if (areValidCoordinates({ row: row - 1, col })) {
+      neighbors.north = {
+        spaceValue: boardState[row - 1]?.[col],
+        coordinates: { row: row - 1, col },
+      };
+    }
+    if (areValidCoordinates({ row: row + 1, col })) {
+      neighbors.south = {
+        spaceValue: boardState[row + 1]?.[col],
+        coordinates: { row: row + 1, col },
+      };
+    }
+    if (areValidCoordinates({ row, col: col + 1 })) {
+      neighbors.east = {
+        spaceValue: boardState[row]?.[col + 1],
+        coordinates: { row, col: col + 1 },
+      };
+    }
+    if (areValidCoordinates({ row, col: col - 1 })) {
+      neighbors.west = {
+        spaceValue: boardState[row]?.[col - 1],
+        coordinates: { row, col: col - 1 },
+      };
+    }
+    return neighbors;
+  };
+
+  const areValidCoordinates = (coordinates: CoordinatePair): boolean => {
+    if (coordinates.row >= BOARD_HEIGHT || coordinates.row < 0) {
+      return false;
+    }
+    if (coordinates.col >= BOARD_WIDTH || coordinates.col < 0) {
+      return false;
+    }
+    return true;
   };
 
   const hasEmptyNeighbors = (coordinates: CoordinatePair): boolean => {
     const neighbors = getNeighbors(coordinates);
     for (let prop in neighbors) {
-      if (neighbors[prop as keyof Neighbors] === EMPTY) {
+      if (neighbors[prop as keyof Neighbors]?.spaceValue === EMPTY) {
         return true;
       }
     }
@@ -74,20 +111,19 @@ function App() {
     }
   };
 
-  const shouldBeCaptured = ({ row, col }: CoordinatePair): boolean => {
+  const shouldBeCaptured = (coordinates: CoordinatePair): boolean => {
     const enemyColor = activePlayer === DARK ? LIGHT : DARK;
-    const neighbors = {
-      north: boardState[row - 1]?.[col],
-      south: boardState[row + 1]?.[col],
-      east: boardState[row][col + 1],
-      west: boardState[row][col - 1],
-    };
+    const neighbors = getNeighbors(coordinates);
 
     if (Object.values(neighbors).includes(enemyColor)) {
       if (
-        (neighbors.north === enemyColor && neighbors.south === enemyColor) ||
-        (neighbors.east === enemyColor && neighbors.west === enemyColor) ||
-        !Object.values(neighbors).includes(EMPTY)
+        (neighbors.north?.spaceValue === (enemyColor || undefined) &&
+          neighbors.south?.spaceValue === (enemyColor || undefined)) ||
+        (neighbors.east?.spaceValue === (enemyColor || undefined) &&
+          neighbors.west?.spaceValue === (enemyColor || undefined)) ||
+        !Object.values(neighbors)
+          .map((neighbor) => neighbor.spaceValue)
+          .includes(EMPTY)
       ) {
         return true;
       }
@@ -95,8 +131,8 @@ function App() {
     return false;
   };
 
-  const captureMarker = ({ row, col }: CoordinatePair): void => {
-    updateBoardState(
+  const handleCapture = async ({ row, col }: CoordinatePair) => {
+    await updateBoardState(
       produce(boardState, (draft) => {
         draft[row][col] = EMPTY;
       })
@@ -105,14 +141,7 @@ function App() {
 
   const selectMarker = ({ row, col }: CoordinatePair) => {
     removeCurrentHighlight();
-    highlightMarker({ row, col });
     updateSelectedMarker(`${row}-${col}`);
-  };
-
-  const highlightMarker = ({ row, col }: CoordinatePair) => {
-    document
-      .getElementById(`${row}-${col}-marker`)
-      ?.classList?.add("highlight");
   };
 
   /**
@@ -120,7 +149,7 @@ function App() {
    * @param coordinatePair - coordinates to move to
    */
 
-  const handleMove = ({ row, col }: CoordinatePair) => {
+  const handleMove = async ({ row, col }: CoordinatePair) => {
     if (!selectedMarker) {
       return;
     }
@@ -132,18 +161,7 @@ function App() {
       { row: currentRow, col: currentCol }
     );
     if (moveIsLegal) {
-      const currentEl = document.getElementById(`${selectedMarker}-marker`);
-
-      // clear current marker
-      currentEl?.classList.remove(IS_LIGHT);
-      currentEl?.classList.remove(IS_DARK);
-
-      // add new marker
-      document
-        .getElementById(`${row}-${col}-marker`)
-        ?.classList.add(activePlayer === DARK ? IS_DARK : IS_LIGHT);
-
-      updateBoardState(
+      await updateBoardState(
         produce(boardState, (draft) => {
           draft[row][col] = activePlayer;
           draft[currentRow][currentCol] = EMPTY;
@@ -152,10 +170,13 @@ function App() {
 
       const neighbors = getNeighbors({ row, col });
 
-      // for(let neighbor in neighbors) {
-      //   if(shouldBeCaptured())
-      // capture
-      // }
+      // check each neighbor of the placed marker to see if it was captured
+      for (const neighbor in neighbors as Neighbors) {
+        const coordinates = neighbors[neighbor as keyof Neighbors]?.coordinates;
+        // if (shouldBeCaptured(coordinates as CoordinatePair)) {
+          // handleCapture(coordinates as CoordinatePair);
+        // }
+      }
 
       updateActivePlayer(activePlayer === DARK ? LIGHT : DARK);
     }
