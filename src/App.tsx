@@ -15,7 +15,10 @@ import {
 import { boardAtom } from "./atoms/boardState";
 import { selectedMarkerAtom } from "./atoms/selectedMarker";
 import "./App.scss";
-import { activePlayerAtom, useActivePlayerDevTools } from "./atoms/activePlayer";
+import {
+  activePlayerAtom,
+  useActivePlayerDevTools,
+} from "./atoms/activePlayer";
 import { CoordinatePair } from "./types/CoordinatePair";
 import Square from "./components/Square/Square";
 import Header from "./components/Header/Header";
@@ -29,7 +32,7 @@ function App() {
   // init devtools
   useAtomDevtools(activePlayerAtom, "active Player");
   useAtomDevtools(boardAtom, "board state");
-  useAtomDevtools(selectedMarkerAtom, "selected marker")
+  useAtomDevtools(selectedMarkerAtom, "selected marker");
 
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
@@ -173,9 +176,16 @@ function App() {
       // check each neighbor of the placed marker to see if it was captured
       for (const neighbor in neighbors as Neighbors) {
         const coordinates = neighbors[neighbor as keyof Neighbors]?.coordinates;
-        // if (shouldBeCaptured(coordinates as CoordinatePair)) {
+        if (shouldBeCaptured(coordinates as CoordinatePair)) {
+          console.log("i found a capture");
           // handleCapture(coordinates as CoordinatePair);
-        // }
+        } else {
+          console.log(
+            `nope, the ${
+              neighbors[neighbor as keyof Neighbors]?.spaceValue
+            } piece near me is ok.`
+          );
+        }
       }
 
       updateActivePlayer(activePlayer === DARK ? LIGHT : DARK);
