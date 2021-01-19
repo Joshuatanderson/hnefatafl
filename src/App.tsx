@@ -2,37 +2,32 @@ import React from "react";
 import { useAtom } from "jotai";
 import produce from "immer";
 
-import { Neighbors } from "./types";
-import {
-  DARK,
-  LIGHT,
-  EMPTY,
-  BOARD_HEIGHT,
-  BOARD_WIDTH,
-  IS_LIGHT,
-  IS_DARK,
-} from "./constants";
-import { boardAtom } from "./atoms/boardState";
-import { selectedMarkerAtom } from "./atoms/selectedMarker";
+import { Neighbors, SpaceValue } from "./types";
+import { DARK, LIGHT, EMPTY, BOARD_HEIGHT, BOARD_WIDTH } from "./constants";
 import "./App.scss";
 import {
   activePlayerAtom,
-  useActivePlayerDevTools,
-} from "./atoms/activePlayer";
+  shouldAlertUserAtom,
+  boardAtom,
+  selectedMarkerAtom,
+} from "./atoms";
 import { CoordinatePair } from "./types/CoordinatePair";
 import Square from "./components/Square/Square";
 import Header from "./components/Header/Header";
 import { useAtomDevtools } from "jotai/devtools";
+import {} from "./atoms/shouldAlertUser";
 
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
   const [selectedMarker, updateSelectedMarker] = useAtom(selectedMarkerAtom);
   const [activePlayer, updateActivePlayer] = useAtom(activePlayerAtom);
+  const [shouldAlertUser, updateShouldAlertUser] = useAtom(shouldAlertUserAtom);
 
   // init devtools
   useAtomDevtools(activePlayerAtom, "active Player");
   useAtomDevtools(boardAtom, "board state");
   useAtomDevtools(selectedMarkerAtom, "selected marker");
+  useAtomDevtools(shouldAlertUserAtom, "error state markers");
 
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
@@ -45,7 +40,8 @@ function App() {
             spaceValue={boardState[i]?.[j]}
             handleClickMarker={handleClickMarker}
             coordinates={{ row: i, col: j }}
-            id={`${i}-${j}-cell`}
+            shouldAlertUser={shouldAlertUser.includes(`${i}-${j}`)}
+            id={`${i}-${j}`}
             key={`${i}-${j}`}
             isSelected={selectedMarker === `${i}-${j}`}
           />
@@ -114,29 +110,34 @@ function App() {
     }
   };
 
-  const shouldBeCaptured = (coordinates: CoordinatePair): boolean => {
-    const enemyColor = activePlayer === DARK ? LIGHT : DARK;
-    const neighbors = getNeighbors(coordinates);
+  const shouldBeCaptured = (
+    coordinates: CoordinatePair,
+    spaceValue: SpaceValue
+  ): boolean => {
+    if (spaceValue === activePlayer || spaceValue === EMPTY) {
+      return false;
+    }
 
-    if (Object.values(neighbors).includes(enemyColor)) {
-      if (
-        (neighbors.north?.spaceValue === (enemyColor || undefined) &&
-          neighbors.south?.spaceValue === (enemyColor || undefined)) ||
-        (neighbors.east?.spaceValue === (enemyColor || undefined) &&
-          neighbors.west?.spaceValue === (enemyColor || undefined)) ||
-        !Object.values(neighbors)
-          .map((neighbor) => neighbor.spaceValue)
-          .includes(EMPTY)
-      ) {
-        return true;
-      }
+    const neighbors = getNeighbors(coordinates);
+    console.log(neighbors);
+
+    if (
+      (neighbors.north?.spaceValue === (activePlayer || undefined) &&
+        neighbors.south?.spaceValue === (activePlayer || undefined)) ||
+      (neighbors.east?.spaceValue === (activePlayer || undefined) &&
+        neighbors.west?.spaceValue === (activePlayer || undefined)) ||
+      !Object.values(neighbors)
+        .map((neighbor) => neighbor.spaceValue)
+        .includes(EMPTY)
+    ) {
+      return true;
     }
     return false;
   };
 
   const handleCapture = async ({ row, col }: CoordinatePair) => {
-    await updateBoardState(
-      produce(boardState, (draft) => {
+    await updateBoardState((base) =>
+      produce(base, (draft) => {
         draft[row][col] = EMPTY;
       })
     );
@@ -164,8 +165,9 @@ function App() {
       { row: currentRow, col: currentCol }
     );
     if (moveIsLegal) {
-      await updateBoardState(
-        produce(boardState, (draft) => {
+      // this isn't updating until after the capture check code below runs.  Frick.
+      await updateBoardState((base) =>
+        produce(base, (draft) => {
           draft[row][col] = activePlayer;
           draft[currentRow][currentCol] = EMPTY;
         })
@@ -173,22 +175,33 @@ function App() {
 
       const neighbors = getNeighbors({ row, col });
 
+      await updateShouldAlertUser((base) => []);
+
       // check each neighbor of the placed marker to see if it was captured
       for (const neighbor in neighbors as Neighbors) {
+        // TODO: Oh son of a I'M SO SORRY! (for the type atrocities committed on this soil)
         const coordinates = neighbors[neighbor as keyof Neighbors]?.coordinates;
-        if (shouldBeCaptured(coordinates as CoordinatePair)) {
-          console.log("i found a capture");
-          // handleCapture(coordinates as CoordinatePair);
-        } else {
-          console.log(
-            `nope, the ${
-              neighbors[neighbor as keyof Neighbors]?.spaceValue
-            } piece near me is ok.`
-          );
+
+        // TODO: remove alert neighbors
+        await updateShouldAlertUser((base) =>
+          produce(base, (draft) => {
+            draft.push(`${coordinates?.row}-${coordinates?.col}`);
+          })
+        );
+        const spaceValue = neighbors[neighbor as keyof Neighbors]?.spaceValue;
+        if (
+          shouldBeCaptured(
+            coordinates as CoordinatePair,
+            spaceValue as SpaceValue
+          )
+        ) {
+          console.log("capture piece");
+          handleCapture(coordinates as CoordinatePair);
         }
       }
 
-      updateActivePlayer(activePlayer === DARK ? LIGHT : DARK);
+      updateSelectedMarker(() => "");
+      updateActivePlayer(() => (activePlayer === DARK ? LIGHT : DARK));
     }
   };
 
@@ -199,6 +212,7 @@ function App() {
     if (!moveIsObstructed && markerIsCorrectColor) {
       return true;
     }
+    updateShouldAlertUser((base) => [`${target.row}-${target.col}`]);
     return false;
   };
 

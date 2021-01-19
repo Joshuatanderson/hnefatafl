@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import classNames from "classnames";
 
 import { DARK, EMPTY, IS_DARK, IS_LIGHT, LIGHT } from "../../constants";
@@ -11,9 +11,10 @@ interface Square {
   coordinates: CoordinatePair;
   handleMove: (coordinates: CoordinatePair) => void;
   handleClickMarker: (coordinates: CoordinatePair) => void;
+  shouldAlertUser: boolean;
   key: string;
   id: string;
-  isSelected: boolean
+  isSelected: boolean;
 }
 
 const Square = ({
@@ -21,17 +22,37 @@ const Square = ({
   coordinates,
   handleMove,
   handleClickMarker,
-  isSelected
+  shouldAlertUser,
+  isSelected,
 }: Square) => {
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  useEffect(() => {
+    if (shouldAlertUser) {
+      setIsFlashing(true);
+    }
+  }, [shouldAlertUser]);
+
+  useEffect(() => {
+    if (isFlashing === true) {
+      setTimeout(() => setIsFlashing(false), 500);
+    }
+  }, [isFlashing]);
+
   const markerClasses = classNames({
     marker: true,
     [IS_LIGHT]: spaceValue === LIGHT,
     [IS_DARK]: spaceValue === DARK,
-    highlight: isSelected
+    highlight: isSelected,
   });
 
+  const squareClasses = classNames({
+    square: true,
+    "is-flashing": isFlashing
+  })
+
   return (
-    <div className="square" onClick={() => handleMove(coordinates)}>
+    <div className={squareClasses} onClick={() => handleMove(coordinates)}>
       {spaceValue !== EMPTY && (
         <div
           id={`${coordinates.row}-${coordinates.col}-marker`}
