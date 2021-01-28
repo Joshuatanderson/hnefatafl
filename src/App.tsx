@@ -200,10 +200,12 @@ function App() {
       { row, col },
       { row: currentRow, col: currentCol }
     );
+    const currentSpaceValue = boardState[currentRow][currentCol];
+
     if (moveIsLegal) {
       updateBoardState((base) =>
         produce(base, (draft) => {
-          draft[row][col] = activePlayer;
+          draft[row][col] = currentSpaceValue;
           draft[currentRow][currentCol] = EMPTY;
         })
       );
