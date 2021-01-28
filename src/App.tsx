@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAtom } from "jotai";
 import produce from "immer";
 
@@ -10,7 +10,7 @@ import {
   shouldAlertUserAtom,
   boardAtom,
   selectedMarkerAtom,
-  lastMoveAtom
+  lastMoveAtom,
 } from "./atoms";
 import { CoordinatePair } from "./types/CoordinatePair";
 import Square from "./components/Square/Square";
@@ -30,11 +30,41 @@ function App() {
   useAtomDevtools(boardAtom, "board state");
   useAtomDevtools(selectedMarkerAtom, "selected marker");
   useAtomDevtools(shouldAlertUserAtom, "error state markers");
+  useAtomDevtools(lastMoveAtom, "last move");
 
-  // useEffect(() => {
+  useEffect(() => {
+    if (!lastMove) {
+      return;
+    }
     // run capture check code after move registers
-    
-  // }, [lastMove])
+    const neighbors = getNeighbors(lastMove);
+    // check each neighbor of the placed marker to see if it was captured
+    for (const neighbor in neighbors as Neighbors) {
+      // TODO: Oh son of a I'M SO SORRY! (for the type atrocities committed on this soil)
+      const coordinates = neighbors[neighbor as keyof Neighbors]?.coordinates;
+
+      // TODO: remove alert neighbors
+      updateShouldAlertUser((base) =>
+        produce(base, (draft) => {
+          draft.push(`${coordinates?.row}-${coordinates?.col}`);
+        })
+      );
+
+      const spaceValue = neighbors[neighbor as keyof Neighbors]?.spaceValue;
+      if (
+        shouldBeCaptured(
+          coordinates as CoordinatePair,
+          spaceValue as SpaceValue
+        )
+      ) {
+        console.log("capture piece");
+        handleCapture(coordinates as CoordinatePair);
+      }
+    }
+    // TODO: remove
+    updateShouldAlertUser((base) => []);
+    updateActivePlayer(() => (activePlayer === DARK ? LIGHT : DARK));
+  }, [lastMove]);
 
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
@@ -128,17 +158,13 @@ function App() {
       return false;
     }
 
-    console.log("should be captured?");
     const neighbors = getNeighbors(coordinates);
 
     if (
       (neighbors.north?.spaceValue === (activePlayer || undefined) &&
         neighbors.south?.spaceValue === (activePlayer || undefined)) ||
       (neighbors.east?.spaceValue === (activePlayer || undefined) &&
-        neighbors.west?.spaceValue === (activePlayer || undefined)) ||
-      !Object.values(neighbors)
-        .map((neighbor) => neighbor.spaceValue)
-        .includes(EMPTY)
+        neighbors.west?.spaceValue === (activePlayer || undefined))
     ) {
       return true;
     }
@@ -174,50 +200,16 @@ function App() {
       { row: currentRow, col: currentCol }
     );
     if (moveIsLegal) {
-      // this isn't updating until after the capture check code below runs.  Frick.
-      await updateBoardState((base) =>
+      updateBoardState((base) =>
         produce(base, (draft) => {
           draft[row][col] = activePlayer;
           draft[currentRow][currentCol] = EMPTY;
         })
       );
-      console.log(
-        `move to ${row}-${col} for ${
-          activePlayer === DARK ? "Black" : "White"
-        } added to state`
-      );
-      console.log(boardState[row][col]);
 
-      const neighbors = getNeighbors({ row, col });
-
-      await updateShouldAlertUser((base) => []);
-
-      // check each neighbor of the placed marker to see if it was captured
-      for (const neighbor in neighbors as Neighbors) {
-        // TODO: Oh son of a I'M SO SORRY! (for the type atrocities committed on this soil)
-        const coordinates = neighbors[neighbor as keyof Neighbors]?.coordinates;
-
-        // TODO: remove alert neighbors
-        await updateShouldAlertUser((base) =>
-          produce(base, (draft) => {
-            draft.push(`${coordinates?.row}-${coordinates?.col}`);
-          })
-        );
-
-        const spaceValue = neighbors[neighbor as keyof Neighbors]?.spaceValue;
-        if (
-          shouldBeCaptured(
-            coordinates as CoordinatePair,
-            spaceValue as SpaceValue
-          )
-        ) {
-          console.log("capture piece");
-          handleCapture(coordinates as CoordinatePair);
-        }
-      }
+      updateLastMove({ row, col });
 
       updateSelectedMarker(() => "");
-      updateActivePlayer(() => (activePlayer === DARK ? LIGHT : DARK));
     }
   };
 
