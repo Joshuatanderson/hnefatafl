@@ -18,7 +18,7 @@
 - [x] Implement capturing
 - [ ] Fix CSS in fullscreen mode
 - [ ] Implement restricted corner squares & center square
-- [ ] Implement King piece
+- [x] Implement King piece
 - [ ] Implement defender's win condition - escape
 - [ ] Implement defender's win condition - extermination
 - [ ] Implement attacker's win condition - capture
