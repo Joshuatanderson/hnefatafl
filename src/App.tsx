@@ -10,6 +10,7 @@ import {
   shouldAlertUserAtom,
   boardAtom,
   selectedMarkerAtom,
+  lastMoveAtom
 } from "./atoms";
 import { CoordinatePair } from "./types/CoordinatePair";
 import Square from "./components/Square/Square";
@@ -19,6 +20,7 @@ import {} from "./atoms/shouldAlertUser";
 
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
+  const [lastMove, updateLastMove] = useAtom(lastMoveAtom);
   const [selectedMarker, updateSelectedMarker] = useAtom(selectedMarkerAtom);
   const [activePlayer, updateActivePlayer] = useAtom(activePlayerAtom);
   const [shouldAlertUser, updateShouldAlertUser] = useAtom(shouldAlertUserAtom);
@@ -28,6 +30,11 @@ function App() {
   useAtomDevtools(boardAtom, "board state");
   useAtomDevtools(selectedMarkerAtom, "selected marker");
   useAtomDevtools(shouldAlertUserAtom, "error state markers");
+
+  // useEffect(() => {
+    // run capture check code after move registers
+    
+  // }, [lastMove])
 
   const makeBoard = (BOARD_WIDTH: number, BOARD_HEIGHT: number) => {
     const boardContents: JSX.Element[][] = [];
@@ -55,6 +62,7 @@ function App() {
   const getNeighbors = ({ row, col }: CoordinatePair): Neighbors => {
     const neighbors: Neighbors = {};
     if (areValidCoordinates({ row: row - 1, col })) {
+      console.log(`North: ${boardState[row - 1]?.[col]}`);
       neighbors.north = {
         spaceValue: boardState[row - 1]?.[col],
         coordinates: { row: row - 1, col },
@@ -78,6 +86,8 @@ function App() {
         coordinates: { row, col: col - 1 },
       };
     }
+    console.log(neighbors);
+
     return neighbors;
   };
 
@@ -118,8 +128,8 @@ function App() {
       return false;
     }
 
+    console.log("should be captured?");
     const neighbors = getNeighbors(coordinates);
-    console.log(neighbors);
 
     if (
       (neighbors.north?.spaceValue === (activePlayer || undefined) &&
@@ -144,7 +154,6 @@ function App() {
   };
 
   const selectMarker = ({ row, col }: CoordinatePair) => {
-    removeCurrentHighlight();
     updateSelectedMarker(`${row}-${col}`);
   };
 
@@ -172,6 +181,12 @@ function App() {
           draft[currentRow][currentCol] = EMPTY;
         })
       );
+      console.log(
+        `move to ${row}-${col} for ${
+          activePlayer === DARK ? "Black" : "White"
+        } added to state`
+      );
+      console.log(boardState[row][col]);
 
       const neighbors = getNeighbors({ row, col });
 
@@ -188,6 +203,7 @@ function App() {
             draft.push(`${coordinates?.row}-${coordinates?.col}`);
           })
         );
+
         const spaceValue = neighbors[neighbor as keyof Neighbors]?.spaceValue;
         if (
           shouldBeCaptured(
@@ -276,13 +292,6 @@ function App() {
       `somehow, code evaded all checks.  attempting move to ${target.row}, ${target.col}`
     );
     return true;
-  };
-
-  const removeCurrentHighlight = () => {
-    const el = document.getElementById(`${selectedMarker}-marker`);
-    if (el) {
-      el?.classList.remove("highlight");
-    }
   };
 
   return (
