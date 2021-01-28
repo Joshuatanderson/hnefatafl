@@ -29,9 +29,9 @@
       border: solid variables.$highlightWidth variables.$highlightColorLight;
     }
     &.isKing {
-      -webkit-box-shadow: inset 0px 0px 3px 3px variables.$black;
-      -moz-box-shadow: inset 0px 0px 3px 3px variables.$black;
-      box-shadow: inset 0px 0px 3px 3px variables.$highlightColorDark;
+      -webkit-box-shadow: inset 0px 0px 3px 3px variables.$kingMark;
+      -moz-box-shadow: inset 0px 0px 3px 3px variables.$kingMark;
+      box-shadow: inset 0px 0px 3px 3px variables.$kingMark;
     }
   }
   &::before {
