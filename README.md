@@ -22,7 +22,6 @@
 - [ ] Implement defender's win condition - escape
 - [ ] Implement defender's win condition - extermination
 - [ ] Implement attacker's win condition - capture
-- [ ] 
 
 ### features that are under consideration
 - [ ] Implement wall captures?
