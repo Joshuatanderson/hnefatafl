@@ -14,6 +14,7 @@
 
 .marker {
   margin: 12%;
+  font-size: 35;
   &.isDark {
     border-radius: 50%;
     background-color: variables.$black;
@@ -26,6 +27,11 @@
     background-color: variables.$white;
     &.highlight {
       border: solid variables.$highlightWidth variables.$highlightColorLight;
+    }
+    &.isKing {
+      -webkit-box-shadow: inset 0px 0px 3px 3px variables.$black;
+      -moz-box-shadow: inset 0px 0px 3px 3px variables.$black;
+      box-shadow: inset 0px 0px 3px 3px variables.$highlightColorDark;
     }
   }
   &::before {

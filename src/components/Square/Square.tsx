@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import classNames from "classnames";
 
-import { DARK, EMPTY, IS_DARK, IS_LIGHT, LIGHT } from "../../constants";
+import {
+  DARK,
+  EMPTY,
+  IS_DARK,
+  IS_LIGHT,
+  LIGHT,
+  KING,
+  IS_KING,
+  isLight,
+  isDark,
+} from "../../constants";
 import { SpaceValue } from "../../types";
 import { CoordinatePair } from "../../types/CoordinatePair";
 import "./Square.scss";
@@ -41,15 +51,16 @@ const Square = ({
 
   const markerClasses = classNames({
     marker: true,
-    [IS_LIGHT]: spaceValue === LIGHT,
-    [IS_DARK]: spaceValue === DARK,
+    [IS_LIGHT]: isLight(spaceValue),
+    [IS_DARK]: isDark(spaceValue),
+    [IS_KING]: spaceValue === KING,
     highlight: isSelected,
   });
 
   const squareClasses = classNames({
     square: true,
-    "is-flashing": isFlashing
-  })
+    "is-flashing": isFlashing,
+  });
 
   return (
     <div className={squareClasses} onClick={() => handleMove(coordinates)}>
@@ -58,7 +69,9 @@ const Square = ({
           id={`${coordinates.row}-${coordinates.col}-marker`}
           className={markerClasses}
           onClick={() => handleClickMarker(coordinates)}
-        ></div>
+        >
+          {spaceValue === KING && <div className="kingSymbol"></div>}
+        </div>
       )}
     </div>
   );

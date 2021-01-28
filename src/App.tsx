@@ -3,7 +3,15 @@ import { useAtom } from "jotai";
 import produce from "immer";
 
 import { Neighbors, SpaceValue } from "./types";
-import { DARK, LIGHT, EMPTY, BOARD_HEIGHT, BOARD_WIDTH } from "./constants";
+import {
+  DARK,
+  LIGHT,
+  EMPTY,
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  isLight,
+  isDark,
+} from "./constants";
 import "./App.scss";
 import {
   activePlayerAtom,
@@ -137,7 +145,7 @@ function App() {
   const handleClickMarker = ({ row, col }: CoordinatePair) => {
     if (
       hasEmptyNeighbors({ row, col }) &&
-      boardState[row][col] === activePlayer
+      isActivePlayerMarker(activePlayer, boardState[row][col])
     ) {
       selectMarker({ row, col });
     }
@@ -208,8 +216,10 @@ function App() {
 
   const isMoveLegal = (target: CoordinatePair, current: CoordinatePair) => {
     const moveIsObstructed = isMoveObstructed(target, current);
-    const markerIsCorrectColor =
-      boardState[current.row][current.col] === activePlayer;
+    const markerIsCorrectColor = isActivePlayerMarker(
+      activePlayer,
+      boardState[current.row][current.col]
+    );
     if (!moveIsObstructed && markerIsCorrectColor) {
       return true;
     }
@@ -278,6 +288,13 @@ function App() {
     );
     return true;
   };
+
+  function isActivePlayerMarker(player: 1 | 2, marker: SpaceValue) {
+    if ((player === 1 && isLight(marker)) || (player === 2 && isDark(marker))) {
+      return true;
+    }
+    return false;
+  }
 
   return (
     <div className="App">

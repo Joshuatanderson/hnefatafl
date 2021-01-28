@@ -2,7 +2,7 @@
 
 .board {
   display: grid;
-  width: 90%;
+  max-width: 90%;
   grid-template-rows: repeat(11, 1fr);
   grid-template-columns: repeat(11, 1fr);
   margin: auto;
