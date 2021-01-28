@@ -32,23 +32,16 @@ function App() {
   useAtomDevtools(shouldAlertUserAtom, "error state markers");
   useAtomDevtools(lastMoveAtom, "last move");
 
+  // run capture check code on each neighbor after move registers
   useEffect(() => {
     if (!lastMove) {
       return;
     }
-    // run capture check code after move registers
     const neighbors = getNeighbors(lastMove);
     // check each neighbor of the placed marker to see if it was captured
     for (const neighbor in neighbors as Neighbors) {
       // TODO: Oh son of a I'M SO SORRY! (for the type atrocities committed on this soil)
       const coordinates = neighbors[neighbor as keyof Neighbors]?.coordinates;
-
-      // TODO: remove alert neighbors
-      updateShouldAlertUser((base) =>
-        produce(base, (draft) => {
-          draft.push(`${coordinates?.row}-${coordinates?.col}`);
-        })
-      );
 
       const spaceValue = neighbors[neighbor as keyof Neighbors]?.spaceValue;
       if (
@@ -61,7 +54,7 @@ function App() {
         handleCapture(coordinates as CoordinatePair);
       }
     }
-    // TODO: remove
+    // TODO: set shouldAlertUser to autoremove
     updateShouldAlertUser((base) => []);
     updateActivePlayer(() => (activePlayer === DARK ? LIGHT : DARK));
   }, [lastMove]);
