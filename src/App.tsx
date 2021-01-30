@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useAtom } from "jotai";
 import produce from "immer";
 
-import { Neighbors, SpaceValue } from "./types";
+import { BoardState, Neighbors, SpaceValue } from "./types";
 import {
   DARK,
   LIGHT,
@@ -16,6 +16,7 @@ import {
   CORNER,
   LIGHT_WON,
   IN_PROGRESS,
+  DARK_WON,
 } from "./constants";
 import "./App.scss";
 import {
@@ -164,9 +165,6 @@ function App() {
     }
   };
 
-  // check for victory
-  //
-
   const shouldBeCaptured = (
     coordinates: CoordinatePair,
     spaceValue: SpaceValue
@@ -188,8 +186,17 @@ function App() {
     return false;
   };
 
+  function onCapture(coordinates: CoordinatePair, boardState: BoardState) {
+    const capturedPiece = boardState[coordinates.row][coordinates.col];
+    if (capturedPiece === KING) {
+      updateGameOutcome(DARK_WON);
+    }
+  }
+
   const handleCapture = async ({ row, col }: CoordinatePair) => {
-    await updateBoardState((base) =>
+    onCapture({ row, col }, boardState);
+
+    updateBoardState((base) =>
       produce(base, (draft) => {
         draft[row][col] = EMPTY;
       })
@@ -323,7 +330,10 @@ function App() {
     return true;
   };
 
-  function isActivePlayerMarker(player: 1 | 2, marker: SpaceValue) {
+  function isActivePlayerMarker(
+    player: typeof LIGHT | typeof DARK,
+    marker: SpaceValue
+  ) {
     if ((player === 1 && isLight(marker)) || (player === 2 && isDark(marker))) {
       return true;
     }
