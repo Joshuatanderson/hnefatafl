@@ -11,6 +11,7 @@ import {
   IS_KING,
   isLight,
   isDark,
+  NORMAL,
 } from "../../constants";
 import { SpaceValue, SquareVariety } from "../../types";
 import { CoordinatePair } from "../../types/CoordinatePair";
@@ -33,6 +34,7 @@ const Square = ({
   coordinates,
   handleMove,
   handleClickMarker,
+  squareVariety,
   shouldAlertUser,
   isSelected,
 }: Square) => {
@@ -61,6 +63,7 @@ const Square = ({
   const squareClasses = classNames({
     square: true,
     "is-flashing": isFlashing,
+    isRestricted: squareVariety !== NORMAL
   });
 
   return (
@@ -71,7 +74,6 @@ const Square = ({
           className={markerClasses}
           onClick={() => handleClickMarker(coordinates)}
         >
-          {spaceValue === KING && <div className="kingSymbol"></div>}
         </div>
       )}
     </div>

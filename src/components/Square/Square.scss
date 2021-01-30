@@ -10,6 +10,9 @@
   &.is-flashing {
     background-color: variables.$error;
   }
+  &.isRestricted {
+    background-image: url("http://api.thumbr.it/whitenoise-361x370.png?background=ffffffff&noise=050505&density=50&opacity=31");
+  }
 }
 
 .marker {
@@ -29,9 +32,8 @@
       border: solid variables.$highlightWidth variables.$highlightColorLight;
     }
     &.isKing {
-      -webkit-box-shadow: inset 0px 0px 0px 3px variables.$kingMark;
-      -moz-box-shadow: inset 0px 0px 0px 3px variables.$kingMark;
-      box-shadow: inset 0px 0px 0px 3px variables.$kingMark;
+      // the url needs a hex code without a hash to function
+      background-image: url("http://api.thumbr.it/whitenoise-361x370.png?background=#{variables.$whiteMinusHash}ff&noise=222222&density=65&opacity=45")
     }
   }
   &::before {
