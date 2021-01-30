@@ -13,6 +13,9 @@ import {
   isDark,
   NORMAL,
   KING,
+  CORNER,
+  LIGHT_WON,
+  IN_PROGRESS,
 } from "./constants";
 import "./App.scss";
 import {
@@ -28,6 +31,7 @@ import Header from "./components/Header/Header";
 import { useAtomDevtools } from "jotai/devtools";
 import {} from "./atoms/shouldAlertUser";
 import { getSquareVariety } from "./getSquareVariety";
+import { gameOutcomeAtom } from "./atoms/gameOutcome";
 
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
@@ -35,6 +39,7 @@ function App() {
   const [selectedMarker, updateSelectedMarker] = useAtom(selectedMarkerAtom);
   const [activePlayer, updateActivePlayer] = useAtom(activePlayerAtom);
   const [shouldAlertUser, updateShouldAlertUser] = useAtom(shouldAlertUserAtom);
+  const [gameOutcome, updateGameOutcome] = useAtom(gameOutcomeAtom);
 
   // init devtools
   useAtomDevtools(activePlayerAtom, "active Player");
@@ -42,6 +47,7 @@ function App() {
   useAtomDevtools(selectedMarkerAtom, "selected marker");
   useAtomDevtools(shouldAlertUserAtom, "error state markers");
   useAtomDevtools(lastMoveAtom, "last move");
+  useAtomDevtools(gameOutcomeAtom, "game outcome");
 
   // run capture check code on each neighbor after move registers
   useEffect(() => {
@@ -147,6 +153,9 @@ function App() {
   };
 
   const handleClickMarker = ({ row, col }: CoordinatePair) => {
+    if (gameOutcome !== IN_PROGRESS) {
+      return;
+    }
     if (
       hasEmptyNeighbors({ row, col }) &&
       isActivePlayerMarker(activePlayer, boardState[row][col])
@@ -154,6 +163,9 @@ function App() {
       selectMarker({ row, col });
     }
   };
+
+  // check for victory
+  //
 
   const shouldBeCaptured = (
     coordinates: CoordinatePair,
@@ -194,7 +206,7 @@ function App() {
    */
 
   const handleMove = async ({ row, col }: CoordinatePair) => {
-    if (!selectedMarker) {
+    if (!selectedMarker || gameOutcome !== IN_PROGRESS) {
       return;
     }
     const [currentRow, currentCol] = selectedMarker
@@ -237,6 +249,12 @@ function App() {
       return false;
     }
     if (!moveIsObstructed && markerIsCorrectColor) {
+      if (
+        squareVariety === CORNER &&
+        boardState[current.row][current.col] === KING
+      ) {
+        updateGameOutcome(LIGHT_WON);
+      }
       return true;
     }
     updateShouldAlertUser((base) => [`${target.row}-${target.col}`]);

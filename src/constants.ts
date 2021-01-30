@@ -1,4 +1,3 @@
-
 export const KING = 3;
 export const DARK = 2;
 export const LIGHT = 1;
@@ -17,3 +16,7 @@ export const IS_KING = "isKing";
 export const CORNER = "CORNER";
 export const CENTER = "CENTER";
 export const NORMAL = "NORMAL";
+
+export const IN_PROGRESS = "IN_PROGRESS";
+export const LIGHT_WON = "LIGHT_WON";
+export const DARK_WON = "DARK_WON";

@@ -20,9 +20,10 @@
 - [x] Implement restricted corner squares & center square
 - [x] Implement King piece
 - [x] Implement restricted squares
-- [ ] Implement defender's win condition - escape
+- [x] Implement defender's win condition - escape
 - [ ] Implement defender's win condition - extermination
 - [ ] Implement attacker's win condition - capture
+- [ ] Add reset game state feat.
 
 ### features that are under consideration
 - [ ] Implement wall captures?
