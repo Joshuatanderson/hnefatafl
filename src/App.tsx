@@ -25,6 +25,7 @@ import Square from "./components/Square/Square";
 import Header from "./components/Header/Header";
 import { useAtomDevtools } from "jotai/devtools";
 import {} from "./atoms/shouldAlertUser";
+import { getSquareVariety } from "./getSquareVariety";
 
 function App() {
   const [boardState, updateBoardState] = useAtom(boardAtom);
@@ -76,6 +77,7 @@ function App() {
           <Square
             handleMove={handleMove}
             spaceValue={boardState[i]?.[j]}
+            squareVariety={getSquareVariety({row: i, col: j})}
             handleClickMarker={handleClickMarker}
             coordinates={{ row: i, col: j }}
             shouldAlertUser={shouldAlertUser.includes(`${i}-${j}`)}

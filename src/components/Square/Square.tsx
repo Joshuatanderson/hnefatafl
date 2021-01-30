@@ -12,7 +12,7 @@ import {
   isLight,
   isDark,
 } from "../../constants";
-import { SpaceValue } from "../../types";
+import { SpaceValue, SquareVariety } from "../../types";
 import { CoordinatePair } from "../../types/CoordinatePair";
 import "./Square.scss";
 
@@ -21,6 +21,7 @@ interface Square {
   coordinates: CoordinatePair;
   handleMove: (coordinates: CoordinatePair) => void;
   handleClickMarker: (coordinates: CoordinatePair) => void;
+  squareVariety: SquareVariety;
   shouldAlertUser: boolean;
   key: string;
   id: string;
