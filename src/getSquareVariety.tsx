@@ -34,8 +34,8 @@ function isCenterSquare(
   boardHeight = BOARD_HEIGHT
 ) {
   const isCenterRow = Math.floor((boardHeight / 2)) === coordinates.row;
-  console.log(isCenterRow);
   const isCenterCol = Math.floor((boardWidth /2 )) === coordinates.col;
+  
   if(isCenterCol && isCenterRow){
       return true;
   }

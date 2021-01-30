@@ -68,7 +68,6 @@ function App() {
           spaceValue as SpaceValue
         )
       ) {
-        console.log("capture piece");
         handleCapture(coordinates as CoordinatePair);
       }
     }
@@ -104,7 +103,6 @@ function App() {
   const getNeighbors = ({ row, col }: CoordinatePair): Neighbors => {
     const neighbors: Neighbors = {};
     if (areValidCoordinates({ row: row - 1, col })) {
-      console.log(`North: ${boardState[row - 1]?.[col]}`);
       neighbors.north = {
         spaceValue: boardState[row - 1]?.[col],
         coordinates: { row: row - 1, col },
@@ -128,7 +126,6 @@ function App() {
         coordinates: { row, col: col - 1 },
       };
     }
-    console.log(neighbors);
 
     return neighbors;
   };
@@ -169,17 +166,27 @@ function App() {
     coordinates: CoordinatePair,
     spaceValue: SpaceValue
   ): boolean => {
-    if (spaceValue === activePlayer || spaceValue === EMPTY) {
+    if (spaceValue === EMPTY || spaceValue === activePlayer) {
       return false;
     }
+
+    const isHostile = (spaceValue: SpaceValue | undefined) => {
+      if (spaceValue === EMPTY || spaceValue === undefined) {
+        return false;
+      } else {
+        return activePlayer === DARK ? isDark(spaceValue) : isLight(spaceValue);
+      }
+    };
+
+    activePlayer === DARK ? isDark(spaceValue) : isLight(spaceValue);
 
     const neighbors = getNeighbors(coordinates);
 
     if (
-      (neighbors.north?.spaceValue === (activePlayer || undefined) &&
-        neighbors.south?.spaceValue === (activePlayer || undefined)) ||
-      (neighbors.east?.spaceValue === (activePlayer || undefined) &&
-        neighbors.west?.spaceValue === (activePlayer || undefined))
+      (isHostile(neighbors.north?.spaceValue) &&
+        isHostile(neighbors.south?.spaceValue)) ||
+      (isHostile(neighbors.east?.spaceValue) &&
+        isHostile(neighbors.west?.spaceValue))
     ) {
       return true;
     }
