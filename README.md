@@ -15,19 +15,18 @@
 
 ## Future project features
 
-- [x] Implement capturing
 - [ ] Fix CSS in fullscreen mode
+- [ ] Add undo move feature
+- [ ] Add reset game state feat.
+- [x] Implement capturing
 - [x] Implement restricted corner squares & center square
 - [x] Implement King piece
 - [x] Implement restricted squares
 - [x] Implement defender's win condition - escape
-- [ ] Add undo move feature
-- [ ] Implement defender's win condition - extermination
 - [x] Implement attacker's win condition - capture
-- [ ] Add reset game state feat.
 
 ### features that are under consideration
-- [ ] Implement wall captures?
+- [ ] Implement wall captures? (this is only in some versions of the game)
 - [ ] Add Additional themes?
 - [ ] Implement complex draws (Defenders in square with movement space)
-- [ ] Add alternative board layouts? 
+- [ ] Add alternative board layouts? (9x9 & 13x13 variants exist)
