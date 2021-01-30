@@ -11,6 +11,8 @@ import {
   BOARD_WIDTH,
   isLight,
   isDark,
+  NORMAL,
+  KING,
 } from "./constants";
 import "./App.scss";
 import {
@@ -77,7 +79,7 @@ function App() {
           <Square
             handleMove={handleMove}
             spaceValue={boardState[i]?.[j]}
-            squareVariety={getSquareVariety({row: i, col: j})}
+            squareVariety={getSquareVariety({ row: i, col: j })}
             handleClickMarker={handleClickMarker}
             coordinates={{ row: i, col: j }}
             shouldAlertUser={shouldAlertUser.includes(`${i}-${j}`)}
@@ -220,10 +222,20 @@ function App() {
 
   const isMoveLegal = (target: CoordinatePair, current: CoordinatePair) => {
     const moveIsObstructed = isMoveObstructed(target, current);
+    const squareVariety = getSquareVariety(target);
     const markerIsCorrectColor = isActivePlayerMarker(
       activePlayer,
       boardState[current.row][current.col]
     );
+
+    // move is by normal piece to restricted area
+    if (
+      squareVariety !== NORMAL &&
+      boardState[current.row][current.col] !== KING
+    ) {
+      updateShouldAlertUser((base) => [`${target.row}-${target.col}`]);
+      return false;
+    }
     if (!moveIsObstructed && markerIsCorrectColor) {
       return true;
     }
