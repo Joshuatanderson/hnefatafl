@@ -19,6 +19,7 @@
 - [ ] Fix CSS in fullscreen mode
 - [x] Implement restricted corner squares & center square
 - [x] Implement King piece
+- [x] Implement restricted squares
 - [ ] Implement defender's win condition - escape
 - [ ] Implement defender's win condition - extermination
 - [ ] Implement attacker's win condition - capture
